@@ -3,9 +3,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  Sparkles,
   Hammer,
   ShieldCheck,
   HeartHandshake,
@@ -17,13 +16,10 @@ import {
   Server,
   Terminal,
   Activity,
-  ShieldAlert,
-  Search,
-  Monitor,
-  Smartphone,
-  Cpu,
+  AlertTriangle,
 } from "lucide-react";
 import Image from "next/image";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 // ─── TYPES & INTERFACES ──────────────────────────────────────────────
 
@@ -45,6 +41,12 @@ interface ProjectStatusResponse {
     logoUrl: string | null;
     overview: string | null;
   } | null;
+  organization: {
+    name: string;
+    tagline: string | null;
+    logoUrl: string | null;
+    coverPhotoUrl: string | null;
+  } | null;
 }
 
 interface Cluster {
@@ -62,31 +64,26 @@ interface LogEntry {
 }
 
 export default function MultiSiteRouter() {
-  const [subdomain, setSubdomain] = useState<string>("");
+  const [subdomain] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    const hostname = window.location.hostname;
+    const parts = hostname.split(".");
+
+    if (
+      parts.length > 2 &&
+      parts[0] !== "demo" &&
+      parts[0] !== "endpoints" &&
+      parts[0] !== "sentry"
+    ) {
+      return parts[0];
+    }
+
+    return "jom-web";
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [project, setProject] = useState<ProjectStatusResponse | null>(null);
 
-  const API_BASE = "https://endpoints.gnexus.co.tz";
-
-  // 🚀 1. CLIENT-SIDE SUBDOMAIN PARSER (Bypasses Next router bugs)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      const parts = hostname.split(".");
-
-      // If visiting via official domain on a subdomain, extract first segment
-      if (
-        parts.length > 2 &&
-        parts[0] !== "demo" &&
-        parts[0] !== "endpoints" &&
-        parts[0] !== "sentry"
-      ) {
-        setSubdomain(parts[0]);
-      } else {
-        setSubdomain("demo-node"); // Local development fallback
-      }
-    }
-  }, []);
+  const API_BASE = "http://localhost:3001"; // Replace with your actual API base URL
 
   // 🚀 2. DYNAMIC FETCH (Fires immediately once subdomain is resolved)
   useEffect(() => {
@@ -298,15 +295,15 @@ function DynamicDashboardView({ project }: { project: ProjectStatusResponse }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between font-sans selection:bg-cyan-500 selection:text-black overflow-x-hidden relative">
       {/* Soft light theme background details */}
-      <div className="absolute top-0 left-1/4 w-[600px] h-[500px] bg-gradient-to-br from-blue-100/40 to-cyan-100/20 blur-[120px] rounded-full pointer-events-none -z-10" />
-      <div className="absolute top-1/3 right-10 w-[500px] h-[500px] bg-gradient-to-br from-indigo-100/30 to-transparent blur-[100px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-0 left-1/4 w-150 h-125 bg-linear-to-br from-blue-100/40 to-cyan-100/20 blur-[120px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-1/3 right-10 w-125 h-125 bg-linear-to-br from-indigo-100/30 to-transparent blur-[100px] rounded-full pointer-events-none -z-10" />
 
       {/* Header Bar */}
       <header className="border-b border-slate-200/80 bg-white/40 backdrop-blur-md px-6 py-4 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {project.profile?.logoUrl ? (
-              <div className="relative h-10 w-10 overflow-hidden rounded-lg border border-slate-200 bg-white p-1">
+              <div className="relative h-10 w-10 overflow-hidden rounded-full border border-slate-200 bg-white p-1">
                 <Image
                   src={project.profile.logoUrl}
                   alt={project.name}
@@ -315,7 +312,7 @@ function DynamicDashboardView({ project }: { project: ProjectStatusResponse }) {
                 />
               </div>
             ) : (
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center border border-cyan-400/30 shadow-[0_4px_12px_rgba(6,182,212,0.15)]">
+              <div className="h-10 w-10 rounded-full bg-linear-to-br from-cyan-500 to-indigo-600 flex items-center justify-center border border-cyan-400/30 shadow-[0_4px_12px_rgba(6,182,212,0.15)]">
                 <span className="font-extrabold text-white text-lg tracking-wider">
                   {project.name.charAt(0).toUpperCase()}
                 </span>
@@ -344,7 +341,7 @@ function DynamicDashboardView({ project }: { project: ProjectStatusResponse }) {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto w-full px-6 py-12 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <main className="max-w-7xl mx-auto w-full px-6 py-12 grow grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Column: Hero Content */}
         <div className="lg:col-span-5 space-y-6 text-left">
           <div className="inline-flex items-center gap-2 border border-cyan-500/20 bg-cyan-500/5 rounded-full px-4 py-1.5">
@@ -357,7 +354,7 @@ function DynamicDashboardView({ project }: { project: ProjectStatusResponse }) {
           <div className="space-y-2">
             <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
               The Intelligence
-              <span className="block mt-1 bg-gradient-to-r from-cyan-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="block mt-1 bg-linear-to-r from-cyan-600 to-indigo-600 bg-clip-text text-transparent">
                 Telemetry Pipeline.
               </span>
             </h2>
@@ -365,9 +362,9 @@ function DynamicDashboardView({ project }: { project: ProjectStatusResponse }) {
 
           <p className="text-sm text-slate-500 leading-relaxed max-w-lg">
             NexusHub Analytics Sentry is a decentralized, edge-native telemetry
-            engine designed for Africa's boldest software projects. We process
-            clickstreams, calculate Core Web Vitals, and assess risk profiles
-            globally under sub-10ms latencies.
+            engine designed for Africa&apos;s boldest software projects. We
+            process clickstreams, calculate Core Web Vitals, and assess risk
+            profiles globally under sub-10ms latencies.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -455,7 +452,7 @@ function DynamicDashboardView({ project }: { project: ProjectStatusResponse }) {
             </div>
 
             {/* Keeps a high-contrast dark console inside the clean light theme */}
-            <div className="bg-slate-900 border border-slate-950 rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-300 space-y-2 h-[155px] overflow-y-auto scrollbar-none text-left">
+            <div className="bg-slate-900 border border-slate-950 rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-300 space-y-2 h-38.75 overflow-y-auto scrollbar-none text-left">
               {logs.map((log, index) => (
                 <div
                   key={index}
@@ -485,7 +482,7 @@ function DynamicDashboardView({ project }: { project: ProjectStatusResponse }) {
               </h3>
             </div>
 
-            <div className="space-y-3 flex-grow py-1">
+            <div className="space-y-3 grow py-1">
               {clusters.map((cluster) => (
                 <div
                   key={cluster.name}
@@ -563,73 +560,108 @@ function ProvisionedFallback({ project }: { project: ProjectStatusResponse }) {
 
   return (
     <div className="relative min-h-screen w-screen bg-slate-50 flex items-center justify-center p-6 text-slate-800 overflow-hidden font-sans">
-      <div className="absolute -left-40 -top-40 h-[600px] w-[600px] rounded-full bg-cyan-100/50 blur-[120px] -z-10" />
-      <div className="absolute -right-40 -bottom-40 h-[600px] w-[600px] rounded-full bg-blue-100/40 blur-[120px] -z-10" />
+      <div className="absolute -left-40 -top-40 h-150 w-150 rounded-full bg-cyan-100/50 blur-[120px] -z-10" />
+      <div className="absolute -right-40 -bottom-40 h-150 w-150 rounded-full bg-blue-100/40 blur-[120px] -z-10" />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className="max-w-xl w-full text-center space-y-8 relative z-10"
+        className="max-w-lg w-full text-center space-y-2 relative z-10"
       >
-        <div className="flex items-center justify-center gap-2 text-xs font-black tracking-[0.25em] text-cyan-600 uppercase">
-          <Sparkles className="h-4 w-4 animate-pulse" />
-          NexusHub Infrastructure
+        <DotLottieReact
+          src="/animations/sett.lottie"
+          autoplay
+          loop
+          speed={1.5}
+          className=" -mx-8 opacity-50"
+        />
+
+        <div className="flex max-w-sm items-center gap-4">
+          <div className="relative">
+            {project.profile?.logoUrl ? (
+              <div className="relative h-16 w-16 overflow-hidden rounded-full border border-slate-200 bg-white p-2 shadow-sm">
+                <Image
+                  src={project.profile.logoUrl}
+                  alt={project.name}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-cyan-500 to-indigo-600 font-mono text-3xl font-black text-white shadow-lg shadow-cyan-500/10">
+                {project.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            {project.organization?.logoUrl ? (
+              <div className="absolute -bottom-2 -right-2 h-8 w-8 overflow-hidden rounded-full border border-slate-500 bg-white p-2 shadow-sm">
+                <Image
+                  src={project.organization.logoUrl}
+                  alt={project.organization.name}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            ) : (
+              <div className="absolute -bottom-2 -right-2 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-purple-600 font-mono text-3xl font-black text-white shadow-lg shadow-indigo-500/10">
+                {project.organization?.name.charAt(0).toUpperCase() || "O"}
+              </div>
+            )}
+          </div>
+          <div className="text-left">
+            <h2 className="text-lg font-extrabold tracking-tight text-slate-900 mt-2 capitalize">
+              {project.name} <span className="text-slate-500">by</span>{" "}
+              {project.organization?.name}
+            </h2>
+            <p className="text-sm text-slate-700 ">
+              {project.organization?.tagline ||
+                "An innovative project on Gn-Apex's edge network."}
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-col items-center gap-4">
-          {project.profile?.logoUrl ? (
-            <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
-              <Image
-                src={project.profile.logoUrl}
-                alt={project.name}
-                fill
-                className="object-contain"
-              />
-            </div>
-          ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-indigo-600 font-mono text-3xl font-black text-white shadow-lg shadow-cyan-500/10">
-              {project.name.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 mt-2">
-            {project.name}
-          </h2>
-          <p className="text-xs font-mono text-cyan-600 bg-cyan-500/10 px-4 py-1.5 rounded-full border border-cyan-500/20">
-            Status: {statusLabels[project.status]}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white/80 p-6 backdrop-blur-md shadow-sm">
-          <p className="text-sm leading-relaxed text-slate-500">
+        <div className=" p-6 flex justify-between gap-2 text-start">
+          <p className="text-xs text-slate-600">
             {project.profile?.overview ||
-              `This space has been successfully provisioned on the NexusHub edge network. Our elite developers are actively crafting the interface. Check back soon for the full experience!`}
+              `This space has been successfully provisioned on the Gn-apex edge network. Our elite developers are actively crafting the interface. Check back soon for the full experience!`}
           </p>
+          <div className="relative sm:max-w-15 max-w-22  rounded-lg overflow-hidden w-full aspect-square">
+            <Image
+              src={project.organization?.coverPhotoUrl || "/grid.jpg"}
+              fill
+              alt={(project.organization?.name && "coverphoto") || ""}
+              className=" object-cover"
+            />
+          </div>
         </div>
+
+        <p className="text-xs font-mono text-cyan-700 bg-cyan-500/10 px-4 py-1.5  ">
+          Status: {statusLabels[project.status]}
+        </p>
 
         <div className="grid grid-cols-3 gap-4 pt-2 text-left">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
               <ShieldCheck className="h-4 w-4 text-cyan-600" /> Secure
             </div>
-            <p className="text-[10px] text-slate-400">SSL & DDoS Active</p>
+            <p className="text-[10px] text-slate-600">SSL & DDoS Active</p>
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
               <Hammer className="h-4 w-4 text-cyan-600" /> Compiled
             </div>
-            <p className="text-[10px] text-slate-400">Optimized at Edge</p>
+            <p className="text-[10px] text-slate-600">Optimized at Edge</p>
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
               <HeartHandshake className="h-4 w-4 text-cyan-600" /> Trusted
             </div>
-            <p className="text-[10px] text-slate-400">Sovereign Build</p>
+            <p className="text-[10px] text-slate-600">Sovereign Build</p>
           </div>
         </div>
 
         <div className="border-t border-slate-200 pt-6 text-[10px] font-mono uppercase tracking-widest text-slate-400">
-          POWERED BY NEXUSHUB CORE — PRE-ALPHA BUILD
+          POWERED BY G-nexus CORE — PRE-ALPHA BUILD
         </div>
       </motion.div>
     </div>
@@ -641,30 +673,46 @@ function ProvisionedFallback({ project }: { project: ProjectStatusResponse }) {
  */
 function UnregisteredFallback({ subdomain }: { subdomain: string }) {
   return (
-    <div className="min-h-screen w-screen bg-slate-50 flex items-center justify-center p-6 text-slate-800 relative overflow-hidden font-sans">
-      <div className="absolute -left-40 -top-40 h-[600px] w-[600px] rounded-full bg-red-100/50 blur-[120px] -z-10" />
+    <div className="min-h-screen w-screen bg-slate-50 flex items-center justify-center p-6 text-slate-800 relative  font-sans">
+      <div className="absolute -left-40 -top-40 h-150 w-150 rounded-full bg-red-100/50 blur-[120px] -z-10" />
 
-      <div className="max-w-md w-full text-center space-y-6 relative z-10 bg-white p-8 rounded-3xl border border-slate-200/80 shadow-md">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20 mx-auto text-red-500 text-3xl">
-          ⚠️
-        </div>
-        <h2 className="text-2xl font-black tracking-tight text-slate-900">
-          <span className="text-red-500 block text-lg font-mono lowercase tracking-wider mb-1">
-            {subdomain}.gnexus.co.tz
+      <div className="max-w-md w-full text-center relative z-10 ">
+        <DotLottieReact
+          src="/animations/oops.lottie"
+          autoplay
+          loop
+          speed={1.5}
+          className=" w-full"
+        />
+        <span className="flex font-medium text-sm gap-1 text-center justify-center">
+          The virtual subdomain
+          <span className="text-red-500 block = font-mono lowercase tracking-wider mb-1">
+            {subdomain}
           </span>
+        </span>
+        <h2 className="text-2xl font-black tracking-tight text-slate-900 mb-6">
           Site Not Found
         </h2>
+
         <p className="text-sm text-slate-500 leading-relaxed">
           This specific virtual subdomain is currently unallocated or not mapped
           to an active project node in the NexusHub database. If you recently
           created this node, please allow 3 minutes for edge cache propagation.
         </p>
-        <a
-          href="https://apex.gnexus.co.tz"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3.5 px-6 shadow-[0_4px_14px_rgba(15,23,42,0.15)] transition-all"
-        >
-          Go to Master Hub <ArrowRight className="h-4 w-4" />
-        </a>
+        <div className="flex  justify-between mt-6">
+          <a
+            href="https://apex.gnexus.co.tz"
+            className="inline-flex items-center  justify-center gap-2 rounded-full  bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3.5 px-6 shadow-[0_4px_14px_rgba(15,23,42,0.15)] transition-all"
+          >
+            Go to Master Hub <ArrowRight className="h-4 w-4 " />
+          </a>
+          <a
+            href="https://apex.gnexus.co.tz"
+            className="inline-flex items-center  justify-center gap-1 rounded-full border  border-red-500 hover:bg-red-500/30 text-red-500 font-bold text-xs py-3 px-6 shadow-[0_4px_14px_rgba(15,23,42,0.15)] transition-all"
+          >
+            Report Issue <AlertTriangle className="h-3 w-3 " />
+          </a>
+        </div>
       </div>
     </div>
   );
