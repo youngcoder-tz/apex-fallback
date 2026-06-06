@@ -83,7 +83,7 @@ export default function MultiSiteRouter() {
   const [isLoading, setIsLoading] = useState(true);
   const [project, setProject] = useState<ProjectStatusResponse | null>(null);
 
-  const API_BASE = "http://localhost:3001"; // Replace with your actual API base URL
+  const API_BASE = "https://endpoints.gnexus.co.tz"; // Replace with your actual API base URL
 
   // 🚀 2. DYNAMIC FETCH (Fires immediately once subdomain is resolved)
   useEffect(() => {
