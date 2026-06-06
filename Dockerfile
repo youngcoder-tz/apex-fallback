@@ -1,7 +1,7 @@
 # /var/www/apex/apex-fallback/Dockerfile
 
-FROM node:20-alpine
-WORKDIR /app
+FROM node:20-alpine AS deps
+clearWORKDIR /app
 
 # 1. Install dependencies
 COPY package*.json ./
