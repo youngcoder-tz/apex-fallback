@@ -1,0 +1,7 @@
+services:
+  fallback-app:
+    build: .
+    container_name: nexushub-fallback-app
+    restart: always
+    ports:
+      - "3555:3000" # Maps VPS port 3555 to container port 3000
