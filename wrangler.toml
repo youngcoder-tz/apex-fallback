@@ -1,0 +1,10 @@
+name = "apex-fallback"
+main = ".vercel/output/static/_worker.js/index.js"
+compatibility_date = "2026-06-06"
+compatibility_flags = ["nodejs_compat"]
+
+# Remove or fix the broken binding:
+# If you NEED self-reference, use the correct name:
+# [[services]]
+# binding = "WORKER_SELF_REFERENCE"
+# service = "apex-fallback"
